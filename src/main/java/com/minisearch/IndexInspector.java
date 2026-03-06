@@ -17,9 +17,10 @@ public class IndexInspector {
 
         printSummary(reader);
         printAllDocuments(reader);
-        printTermDictionary(reader, "body", 20);
+        printTermDictionary(reader, "description", 20);
         printTermDictionary(reader, "title", 20);
-        printPostingsList(reader, "body", "lucene");
+        printTermDictionary(reader, "category", 20);
+        printPostingsList(reader, "description", "china");
         printSegmentInfo(reader);
 
         reader.close();

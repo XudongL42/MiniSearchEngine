@@ -100,6 +100,20 @@ public class AnalyzerPlayground {
         // Close all analyzers
         analyzers.values().forEach(Analyzer::close);
         english.close();
+
+        // Simulate what happens if you accidentally analyze an ID field
+        KeywordAnalyzer kw = new KeywordAnalyzer();
+        StandardAnalyzer std = new StandardAnalyzer();
+        String[] ids = { "user-12345", "ORDER_9981", "tx:ABC.001" };
+        System.out.println("\\n━━━ Experiment C: ID field analyzer comparison ━━━\\n");
+        for (String id : ids) {
+            System.out.printf("ID: %-20s  Keyword: %-20s  Standard: %s%n",
+                id,
+                getTokens(kw, "id", id),
+                getTokens(std, "id", id));
+        }
+        kw.close();
+        std.close();
     }
 
     // ---------------------------------------------------------------

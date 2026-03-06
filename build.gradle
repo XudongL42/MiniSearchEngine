@@ -31,6 +31,8 @@ dependencies {
     implementation "org.apache.lucene:lucene-queryparser:${luceneVersion}" // you'll need this on day 4, add it now
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.1'
 }
 
 test {
@@ -45,4 +47,16 @@ task runInspector(type: JavaExec) {
 task runPlayground(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.minisearch.AnalyzerPlayground'
+}
+
+task runIndexer(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.minisearch.DatasetIndexer'
+    // Give the JVM more heap for large indexing jobs
+    jvmArgs = ['-Xmx512m']
+}
+
+task runFieldExplorer(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.minisearch.FieldTypeExplorer'
 }

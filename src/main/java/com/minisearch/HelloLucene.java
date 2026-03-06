@@ -1,6 +1,8 @@
 package com.minisearch;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -37,6 +39,8 @@ public class HelloLucene {
         {"8", "Relevance Ranking",        "Relevance ranking scores documents using BM25 by default in Lucene."},
         {"9", "Text Analysis",            "Analyzers tokenize and normalize text before indexing or searching."},
         {"10","Full Text Search",         "Full-text search finds documents containing terms from a query string."},
+        {"11","Running Systems",          "The indexer is running and indexes are being built continuously."},
+        {"12","Index Operations",         "Re-indexing and indexed data must be managed by the indexer carefully."},
     };
 
     public static void main(String[] args) throws Exception {
@@ -53,7 +57,7 @@ public class HelloLucene {
         // StandardAnalyzer lowercases, removes common English stop words,
         // and splits on whitespace/punctuation.
         // ---------------------------------------------------------------
-        StandardAnalyzer analyzer = new StandardAnalyzer();
+        Analyzer analyzer = new EnglishAnalyzer(); //new StandardAnalyzer();
 
         // ---------------------------------------------------------------
         // STEP 3: Configure and open an IndexWriter
@@ -126,12 +130,12 @@ public class HelloLucene {
         // Search 4: search the "title" field instead of body
         //runSearch(searcher, "title", "lucene");
 
-        //runSearch(searcher, "wulawula", "search");
+        runSearch(searcher, "body", "index");
 
-        analyzeText(analyzer, "body", "Java");
-        analyzeText(analyzer, "body", "Lucene is a powerful full-text search library written in Java.");
-        analyzeText(analyzer, "title", "lucene");
-        analyzeText(analyzer, "title", "\"powerful search\"");
+        //analyzeText(analyzer, "body", "Java");
+        //analyzeText(analyzer, "body", "Lucene is a powerful full-text search library written in Java.");
+        //analyzeText(analyzer, "title", "lucene");
+        //analyzeText(analyzer, "title", "\"powerful search\"");
 
         // ---------------------------------------------------------------
         // STEP 7: Experiment prompts (do these manually after first run)
@@ -148,7 +152,7 @@ public class HelloLucene {
         directory.close();
     }
 
-    static void analyzeText(StandardAnalyzer analyzer, String fieldName, String text) throws ParseException {
+    static void analyzeText(Analyzer analyzer, String fieldName, String text) throws ParseException {
         QueryParser parser = new QueryParser("body", analyzer);
 
         Query query = parser.parse(text);
