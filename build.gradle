@@ -67,3 +67,13 @@ task runQueryExplorer(type: JavaExec) {
     mainClass = 'com.minisearch.QueryExplorer'
     standardInput = System.in  // needed for interactive CLI in section 8
 }
+
+task runScoringExplorer(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.minisearch.ScoringExplorer'
+}
+
+task runSortingExplorer(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.minisearch.SortingExplorer'
+}
