@@ -30,6 +30,7 @@ dependencies {
     implementation "org.apache.lucene:lucene-analysis-common:${luceneVersion}"
     implementation "org.apache.lucene:lucene-queryparser:${luceneVersion}" // you'll need this on day 4, add it now
     implementation "org.apache.lucene:lucene-highlighter:${luceneVersion}"
+    implementation "org.apache.lucene:lucene-facet:${luceneVersion}"
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 
@@ -76,4 +77,15 @@ task runScoringExplorer(type: JavaExec) {
 task runSortingExplorer(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.minisearch.SortingExplorer'
+}
+
+task runNRTDemo(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.minisearch.NRTSearchDemo'
+    jvmArgs   = ['-Xmx512m']
+}
+
+task runFacetsExplorer(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.minisearch.FacetsExplorer'
 }

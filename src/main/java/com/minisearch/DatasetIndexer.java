@@ -9,6 +9,9 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.facet.FacetField;
+import org.apache.lucene.facet.FacetsConfig;
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -27,12 +30,14 @@ public class DatasetIndexer {
         long startTime = System.currentTimeMillis();
 
         Directory directory = IndexConfig.openDiskDirectory();
+        Directory taxonomyDir = IndexConfig.openTaxonomyDirectory();
         EnglishAnalyzer analyzer = new EnglishAnalyzer();
 
         // ---------------------------------------------------------------
         // IndexWriterConfig tuning — these settings matter at scale
         // ---------------------------------------------------------------
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        FacetsConfig facetsConfig = new FacetsConfig();
 
         // CREATE wipes the existing index on open.
         // Change to CREATE_OR_APPEND if you want to add to an existing index.
@@ -41,9 +46,10 @@ public class DatasetIndexer {
         // RAM buffer: Lucene accumulates documents here before flushing to disk.
         // Larger buffer = fewer segments = faster indexing = more RAM used.
         // 256MB is a good starting point for bulk indexing.
-        config.setRAMBufferSizeMB(16);
+        config.setRAMBufferSizeMB(128);
 
         IndexWriter writer = new IndexWriter(directory, config);
+        DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxonomyDir);
         ObjectMapper mapper = new ObjectMapper();
 
         int indexed = 0;
@@ -60,7 +66,7 @@ public class DatasetIndexer {
                 try {
                     JsonNode node = mapper.readTree(line);
                     Document doc = buildDocument(node);
-                    writer.addDocument(doc);
+                    writer.addDocument(facetsConfig.build(taxoWriter, doc));
                     indexed++;
 
                     // Progress reporting every 10k docs
@@ -87,6 +93,7 @@ public class DatasetIndexer {
         // ---------------------------------------------------------------
         System.out.println("\\nCommitting...");
         writer.commit();
+        taxoWriter.commit();
 
         long elapsed = System.currentTimeMillis() - startTime;
         System.out.printf("%n✓ Indexed:  %,d documents%n", indexed);
@@ -101,8 +108,10 @@ public class DatasetIndexer {
         }
 
         writer.close();
+        taxoWriter.close();
         analyzer.close();
         directory.close();
+        taxonomyDir.close();
 
         System.out.println("\\nIndex written to: " + IndexConfig.INDEX_PATH);
         System.out.println("Run IndexInspector to explore the index.");
@@ -151,6 +160,7 @@ public class DatasetIndexer {
         doc.add(new StringField("author",
                 getOrDefault(node, "authors", "unknown"),
                 Field.Store.YES));
+        doc.add(new FacetField("author_facet", getOrDefault(node, "authors", "unknown")));
 
         // --- Category field ---
         // StringField: NOT analyzed, stored.
@@ -159,6 +169,7 @@ public class DatasetIndexer {
         doc.add(new StringField("category",
                 getOrDefault(node, "category", "UNKNOWN"),
                 Field.Store.YES));
+        doc.add(new FacetField("category_facet", getOrDefault(node, "category", "UNKNOWN")));
 
         // --- Date as string field ---
         // StringField: stored for display.
@@ -202,7 +213,7 @@ public class DatasetIndexer {
         // --- SortedDocValuesField for category faceting ---
         // Enables fast group-by / facet counts on the category field.
         // You'll use this on Day 6 for faceted search.
-        doc.add(new SortedDocValuesField("category_facet",
+        doc.add(new SortedDocValuesField("category_facet_old",
                 new org.apache.lucene.util.BytesRef(
                         getOrDefault(node, "category", "UNKNOWN"))));
 
@@ -210,8 +221,10 @@ public class DatasetIndexer {
     }
 
     static String getOrDefault(JsonNode node, String field, String defaultValue) {
-        return node.has(field) && !node.get(field).isNull()
-                ? node.get(field).asText().trim()
-                : defaultValue;
+        if (node.has(field) && !node.get(field).isNull()) {
+            String value = node.get(field).asText().trim();
+            return value.isEmpty() ? defaultValue : value;
+        }
+        return defaultValue;
     }
 }
