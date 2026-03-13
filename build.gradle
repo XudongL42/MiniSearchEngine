@@ -35,6 +35,9 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.1'
+
+    implementation 'io.javalin:javalin:6.3.0'
+    implementation 'org.slf4j:slf4j-simple:2.0.13'
 }
 
 test {
@@ -88,4 +91,11 @@ task runNRTDemo(type: JavaExec) {
 task runFacetsExplorer(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.minisearch.FacetsExplorer'
+}
+
+task runServer(type: JavaExec) {
+    classpath  = sourceSets.main.runtimeClasspath
+    mainClass  = 'com.minisearch.api.SearchServer'
+    jvmArgs    = ['-Xmx512m']
+    standardInput = System.in
 }
